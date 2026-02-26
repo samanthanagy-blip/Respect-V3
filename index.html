@@ -24,9 +24,6 @@
   .option-text { font-size: 14px; line-height: 1.5; color: #333; }
   .option-num { font-size: 13px; font-weight: 600; color: #999; min-width: 18px; }
   .counter { font-size: 12px; color: #aaa; margin-top: 10px; }
-  .other-field { margin-top: 14px; }
-  .other-label { font-size: 12px; color: #999; margin-bottom: 6px; }
-  .other-field input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: #fafafa; outline: none; }
   .btn { display: block; width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 28px; }
   .btn:hover { background: #333; }
   .error { font-size: 13px; color: #c0392b; margin-top: 8px; display: none; }
@@ -123,7 +120,7 @@
     <div class="section">
       <div class="section-label">Question 5 of 5</div>
       <div class="question">Which of the following best represents the main challenge(s) you're hoping coaching will help you with?</div>
-      <div class="sub">Select all that apply</div>
+      <div class="sub">Pick 2</div>
       <label class="option"><input type="checkbox" name="q5" value="Leading and developing my team"><span class="option-text">Leading and developing my team</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Communicating with more influence"><span class="option-text">Communicating with more influence</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Navigating difficult relationships at work"><span class="option-text">Navigating difficult relationships at work</span></label>
@@ -134,11 +131,8 @@
       <label class="option"><input type="checkbox" name="q5" value="Improving my physical health and habits"><span class="option-text">Improving my physical health and habits</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Finding more purpose and fulfillment"><span class="option-text">Finding more purpose and fulfillment</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Thinking through difficult or high-stakes decisions"><span class="option-text">Thinking through difficult or high-stakes decisions</span></label>
-      <div class="other-field">
-        <div class="other-label">Something else:</div>
-        <input type="text" id="q5other" placeholder="Describe your challenge...">
-      </div>
-      <div class="error" id="q5-error">Please select at least one option or describe your challenge.</div>
+      <div class="counter" id="q5-counter">0 of 2 selected</div>
+      <div class="error" id="q5-error">Please select exactly 2 options.</div>
     </div>
 
     <button class="btn" id="submit-btn">See My Results</button>
@@ -184,9 +178,7 @@ roleDesc['Transformer'] = 'You want a coach who sees your full potential and hel
 function getChecked(name) {
   var all = document.querySelectorAll('input[name="' + name + '"]:checked');
   var vals = [];
-  for (var i = 0; i < all.length; i++) {
-    vals.push(all[i].value);
-  }
+  for (var i = 0; i < all.length; i++) { vals.push(all[i].value); }
   return vals;
 }
 
@@ -195,9 +187,7 @@ function setupLimit(name, max, counterId) {
   for (var i = 0; i < boxes.length; i++) {
     boxes[i].addEventListener('change', function() {
       var checked = document.querySelectorAll('input[name="' + name + '"]:checked');
-      if (checked.length > max) {
-        this.checked = false;
-      }
+      if (checked.length > max) { this.checked = false; }
       var n = document.querySelectorAll('input[name="' + name + '"]:checked').length;
       document.getElementById(counterId).textContent = n + ' of ' + max + ' selected';
     });
@@ -206,6 +196,7 @@ function setupLimit(name, max, counterId) {
 
 setupLimit('q1', 3, 'q1-counter');
 setupLimit('q4', 3, 'q4-counter');
+setupLimit('q5', 2, 'q5-counter');
 
 document.getElementById('submit-btn').addEventListener('click', function() {
   var valid = true;
@@ -215,55 +206,35 @@ document.getElementById('submit-btn').addEventListener('click', function() {
   var q3el = document.querySelector('input[name="q3"]:checked');
   var q4 = getChecked('q4');
   var q5 = getChecked('q5');
-  var q5other = document.getElementById('q5other').value.trim();
 
   if (q1.length !== 3) {
-    document.getElementById('q1-error').style.display = 'block';
-    valid = false;
-  } else {
-    document.getElementById('q1-error').style.display = 'none';
-  }
+    document.getElementById('q1-error').style.display = 'block'; valid = false;
+  } else { document.getElementById('q1-error').style.display = 'none'; }
 
   if (!q2el) {
-    document.getElementById('q2-error').style.display = 'block';
-    valid = false;
-  } else {
-    document.getElementById('q2-error').style.display = 'none';
-  }
+    document.getElementById('q2-error').style.display = 'block'; valid = false;
+  } else { document.getElementById('q2-error').style.display = 'none'; }
 
   if (!q3el) {
-    document.getElementById('q3-error').style.display = 'block';
-    valid = false;
-  } else {
-    document.getElementById('q3-error').style.display = 'none';
-  }
+    document.getElementById('q3-error').style.display = 'block'; valid = false;
+  } else { document.getElementById('q3-error').style.display = 'none'; }
 
   if (q4.length !== 3) {
-    document.getElementById('q4-error').style.display = 'block';
-    valid = false;
-  } else {
-    document.getElementById('q4-error').style.display = 'none';
-  }
+    document.getElementById('q4-error').style.display = 'block'; valid = false;
+  } else { document.getElementById('q4-error').style.display = 'none'; }
 
-  if (q5.length === 0 && q5other === '') {
-    document.getElementById('q5-error').style.display = 'block';
-    valid = false;
-  } else {
-    document.getElementById('q5-error').style.display = 'none';
-  }
+  if (q5.length !== 2) {
+    document.getElementById('q5-error').style.display = 'block'; valid = false;
+  } else { document.getElementById('q5-error').style.display = 'none'; }
 
   if (!valid) { return; }
 
   var tally = {};
-  for (var i = 0; i < roleList.length; i++) {
-    tally[roleList[i]] = 0;
-  }
+  for (var i = 0; i < roleList.length; i++) { tally[roleList[i]] = 0; }
   for (var i = 0; i < q1.length; i++) { tally[q1[i]]++; }
   for (var i = 0; i < q4.length; i++) { tally[q4[i]]++; }
 
-  var q2s = parseInt(q2el.value);
-  var q3s = parseInt(q3el.value);
-  var dirScore = (q2s + q3s) / 2;
+  var dirScore = (parseInt(q2el.value) + parseInt(q3el.value)) / 2;
   var dirLevel, dirDesc;
 
   if (dirScore <= 1.4) {
@@ -277,8 +248,7 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     dirDesc = 'You prefer a coach who draws out your own thinking - leading with questions and sharing perspective sparingly.';
   }
 
-  var primary = [];
-  var secondary = [];
+  var primary = [], secondary = [];
   for (var i = 0; i < roleList.length; i++) {
     var r = roleList[i];
     if (tally[r] === 2) { primary.push(r); }
@@ -314,11 +284,9 @@ document.getElementById('submit-btn').addEventListener('click', function() {
   document.getElementById('dir-level').textContent = dirLevel;
   document.getElementById('dir-desc').textContent = dirDesc;
 
-  var allFocus = q5.slice();
-  if (q5other !== '') { allFocus.push(q5other); }
   var tagHtml = '';
-  for (var i = 0; i < allFocus.length; i++) {
-    tagHtml += '<span class="tag">' + allFocus[i] + '</span>';
+  for (var i = 0; i < q5.length; i++) {
+    tagHtml += '<span class="tag">' + q5[i] + '</span>';
   }
   document.getElementById('focus-tags').innerHTML = tagHtml;
 
@@ -328,7 +296,7 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     q2: q2el.value === '1' ? 'Very direct' : q2el.value === '2' ? 'Balanced' : 'Tactful',
     q3: q3el.value === '1' ? 'Lean toward sharing perspective' : q3el.value === '2' ? 'Balance perspective with questions' : 'Lean toward asking questions',
     q4: q4.join(', '),
-    q5: allFocus.join(', '),
+    q5: q5.join(', '),
     primaryRoles: primary.join(', '),
     secondaryRoles: secondary.join(', '),
     directivenessScore: dirScore.toString(),
