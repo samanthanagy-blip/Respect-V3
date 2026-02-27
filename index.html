@@ -32,10 +32,8 @@
   .btn:hover { background: #333; }
   .btn:disabled { background: #999; cursor: not-allowed; }
   .error { font-size: 13px; color: #c0392b; margin-top: 8px; display: none; }
-  /* Toast notification */
   .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #c0392b; color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; display: none; z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,0.18); max-width: 90vw; text-align: center; }
   .toast.show { display: block; }
-  /* Submission status banner on results page */
   .submit-status { border-radius: 10px; padding: 14px 18px; font-size: 13px; margin-bottom: 16px; display: none; }
   .submit-status.saving { background: #f0f0ee; color: #666; border: 1px solid #e8e8e6; display: block; }
   .submit-status.saved { background: #eaf5ea; color: #2e7d32; border: 1px solid #c8e6c9; display: block; }
@@ -135,7 +133,7 @@
     <div class="section">
       <div class="section-label">Question 5 of 5</div>
       <div class="question">Which of the following best represents the main challenge(s) you're hoping coaching will help you with?</div>
-      <div class="sub">Select all that apply</div>
+      <div class="sub">Pick 2</div>
       <label class="option"><input type="checkbox" name="q5" value="Leading and developing my team"><span class="option-text">Leading and developing my team</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Communicating with more influence"><span class="option-text">Communicating with more influence</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Navigating difficult relationships at work"><span class="option-text">Navigating difficult relationships at work</span></label>
@@ -146,11 +144,8 @@
       <label class="option"><input type="checkbox" name="q5" value="Improving my physical health and habits"><span class="option-text">Improving my physical health and habits</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Finding more purpose and fulfillment"><span class="option-text">Finding more purpose and fulfillment</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Thinking through difficult or high-stakes decisions"><span class="option-text">Thinking through difficult or high-stakes decisions</span></label>
-      <div class="other-field">
-        <div class="other-label">Something else:</div>
-        <input type="text" id="q5other" placeholder="Describe your challenge...">
-      </div>
-      <div class="error" id="q5-error">Please select at least one option or describe your challenge.</div>
+      <div class="counter" id="q5-counter">0 of 2 selected</div>
+      <div class="error" id="q5-error">Please select exactly 2 options.</div>
     </div>
 
     <button class="btn" id="submit-btn">See My Results</button>
@@ -163,7 +158,6 @@
       <p>A summary of your coaching preferences to share with your coach before your first session.</p>
     </div>
 
-    <!-- Submission status banner -->
     <div class="submit-status" id="submit-status"></div>
 
     <div class="res-block">
@@ -225,8 +219,8 @@ function setupLimit(name, max, counterId) {
 
 setupLimit('q1', 3, 'q1-counter');
 setupLimit('q4', 3, 'q4-counter');
+setupLimit('q5', 2, 'q5-counter');
 
-// ── Submission with retry ────────────────────────────────────────────
 function setStatus(type, msg, showRetry) {
   var el = document.getElementById('submit-status');
   el.className = 'submit-status ' + type;
@@ -243,7 +237,7 @@ function sendPayload(payload, attempt) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', SCRIPT_URL, true);
   xhr.setRequestHeader('Content-Type', 'text/plain');
-  xhr.timeout = 12000; // 12-second timeout
+  xhr.timeout = 12000;
 
   xhr.onload = function() {
     if (xhr.status >= 200 && xhr.status < 300) {
@@ -252,32 +246,22 @@ function sendPayload(payload, attempt) {
       handleFailure(payload, attempt, 'Server returned status ' + xhr.status + '.');
     }
   };
-
-  xhr.onerror = function() {
-    handleFailure(payload, attempt, 'Network error.');
-  };
-
-  xhr.ontimeout = function() {
-    handleFailure(payload, attempt, 'Request timed out.');
-  };
-
+  xhr.onerror = function() { handleFailure(payload, attempt, 'Network error.'); };
+  xhr.ontimeout = function() { handleFailure(payload, attempt, 'Request timed out.'); };
   xhr.send(JSON.stringify(payload));
 }
 
 function handleFailure(payload, attempt, reason) {
   if (attempt < MAX_RETRIES) {
-    // Auto-retry after a short delay
     setTimeout(function() { sendPayload(payload, attempt + 1); }, 2000);
   } else {
     setStatus('failed', '⚠️ We couldn\'t save your responses (' + reason + ').', true);
   }
 }
 
-// ── Form submit ──────────────────────────────────────────────────────
 document.getElementById('submit-btn').addEventListener('click', function() {
   var valid = true;
 
-  // Validate name
   var name = document.getElementById('fullName').value.trim();
   var nameInput = document.getElementById('fullName');
   if (!name) {
@@ -294,7 +278,6 @@ document.getElementById('submit-btn').addEventListener('click', function() {
   var q3el = document.querySelector('input[name="q3"]:checked');
   var q4 = getChecked('q4');
   var q5 = getChecked('q5');
-  var q5other = document.getElementById('q5other').value.trim();
 
   if (q1.length !== 3) { document.getElementById('q1-error').style.display = 'block'; valid = false; }
   else { document.getElementById('q1-error').style.display = 'none'; }
@@ -308,18 +291,16 @@ document.getElementById('submit-btn').addEventListener('click', function() {
   if (q4.length !== 3) { document.getElementById('q4-error').style.display = 'block'; valid = false; }
   else { document.getElementById('q4-error').style.display = 'none'; }
 
-  if (q5.length === 0 && q5other === '') { document.getElementById('q5-error').style.display = 'block'; valid = false; }
+  if (q5.length !== 2) { document.getElementById('q5-error').style.display = 'block'; valid = false; }
   else { document.getElementById('q5-error').style.display = 'none'; }
 
   if (!valid) return;
 
-  // Tally roles
   var tally = {};
   for (var i = 0; i < roleList.length; i++) tally[roleList[i]] = 0;
   for (var i = 0; i < q1.length; i++) tally[q1[i]]++;
   for (var i = 0; i < q4.length; i++) tally[q4[i]]++;
 
-  // Directiveness
   var q2s = parseInt(q2el.value);
   var q3s = parseInt(q3el.value);
   var dirScore = (q2s + q3s) / 2;
@@ -335,7 +316,6 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     dirDesc = 'You prefer a coach who draws out your own thinking - leading with questions and sharing perspective sparingly.';
   }
 
-  // Primary / secondary roles
   var primary = [], secondary = [];
   for (var i = 0; i < roleList.length; i++) {
     var r = roleList[i];
@@ -351,7 +331,6 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     secondary = secSet;
   }
 
-  // Render results
   var html = '';
   for (var i = 0; i < primary.length; i++) {
     var r = primary[i];
@@ -366,20 +345,17 @@ document.getElementById('submit-btn').addEventListener('click', function() {
   document.getElementById('dir-level').textContent = dirLevel;
   document.getElementById('dir-desc').textContent = dirDesc;
 
-  var allFocus = q5.slice();
-  if (q5other !== '') allFocus.push(q5other);
   var tagHtml = '';
-  for (var i = 0; i < allFocus.length; i++) tagHtml += '<span class="tag">' + allFocus[i] + '</span>';
+  for (var i = 0; i < q5.length; i++) tagHtml += '<span class="tag">' + q5[i] + '</span>';
   document.getElementById('focus-tags').innerHTML = tagHtml;
 
-  // Build and store payload, then send
   currentPayload = {
     fullName: name,
     q1: q1.join(', '),
     q2: q2el.value === '1' ? 'Very direct' : q2el.value === '2' ? 'Balanced' : 'Tactful',
     q3: q3el.value === '1' ? 'Lean toward sharing perspective' : q3el.value === '2' ? 'Balance perspective with questions' : 'Lean toward asking questions',
     q4: q4.join(', '),
-    q5: allFocus.join(', '),
+    q5: q5.join(', '),
     primaryRoles: primary.join(', '),
     secondaryRoles: secondary.join(', '),
     directivenessScore: dirScore.toString(),
