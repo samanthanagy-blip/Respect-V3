@@ -16,17 +16,31 @@
   .question { font-size: 15px; font-weight: 500; margin-bottom: 6px; line-height: 1.5; }
   .sub { font-size: 13px; color: #888; margin-bottom: 18px; }
   .field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
-  .field input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; outline: none; }
+  .field input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; outline: none; transition: border-color 0.15s; }
   .field input[type="text"]:focus { border-color: #4a4a4a; background: #fff; }
+  .field input[type="text"].input-error { border-color: #c0392b; }
   .option { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0ee; cursor: pointer; }
   .option:last-child { border-bottom: none; }
   .option input { margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px; }
   .option-text { font-size: 14px; line-height: 1.5; color: #333; }
   .option-num { font-size: 13px; font-weight: 600; color: #999; min-width: 18px; }
   .counter { font-size: 12px; color: #aaa; margin-top: 10px; }
-  .btn { display: block; width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 28px; }
+  .other-field { margin-top: 14px; }
+  .other-label { font-size: 12px; color: #999; margin-bottom: 6px; }
+  .other-field input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: #fafafa; outline: none; }
+  .btn { display: block; width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 28px; transition: background 0.15s; }
   .btn:hover { background: #333; }
+  .btn:disabled { background: #999; cursor: not-allowed; }
   .error { font-size: 13px; color: #c0392b; margin-top: 8px; display: none; }
+  /* Toast notification */
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #c0392b; color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; display: none; z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,0.18); max-width: 90vw; text-align: center; }
+  .toast.show { display: block; }
+  /* Submission status banner on results page */
+  .submit-status { border-radius: 10px; padding: 14px 18px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .submit-status.saving { background: #f0f0ee; color: #666; border: 1px solid #e8e8e6; display: block; }
+  .submit-status.saved { background: #eaf5ea; color: #2e7d32; border: 1px solid #c8e6c9; display: block; }
+  .submit-status.failed { background: #fdecea; color: #c0392b; border: 1px solid #f5c6c2; display: block; }
+  .retry-btn { background: none; border: none; color: #c0392b; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; margin-left: 8px; }
   #results { display: none; }
   .results-header { background: #1a1a1a; color: #fff; border-radius: 12px; padding: 32px; margin-bottom: 20px; }
   .results-header .name { font-size: 13px; color: #aaa; margin-bottom: 4px; }
@@ -62,9 +76,10 @@
     <div class="section">
       <div class="section-label">Your Information</div>
       <div class="field">
-        <label>Full name</label>
+        <label>Full name <span style="color:#c0392b">*</span></label>
         <input type="text" id="fullName" placeholder="First and last name">
       </div>
+      <div class="error" id="name-error">Please enter your full name.</div>
     </div>
 
     <div class="section">
@@ -112,7 +127,7 @@
       <label class="option"><input type="checkbox" name="q4" value="Provocateur"><span class="option-text">Challenge my thinking and face uncomfortable truths</span></label>
       <label class="option"><input type="checkbox" name="q4" value="Explorer"><span class="option-text">Explore new possibilities</span></label>
       <label class="option"><input type="checkbox" name="q4" value="Confidant"><span class="option-text">Feel supported and understood</span></label>
-      <label class="option"><input type="checkbox" name="q4" value="Transformer"><span class="option-text">Explore who I am capable of becoming</span></label>
+      <label class="option"><input type="checkbox" name="q4" value="Transformer"><span class="option-text">Become my best self</span></label>
       <div class="counter" id="q4-counter">0 of 3 selected</div>
       <div class="error" id="q4-error">Please select exactly 3 options.</div>
     </div>
@@ -120,7 +135,7 @@
     <div class="section">
       <div class="section-label">Question 5 of 5</div>
       <div class="question">Which of the following best represents the main challenge(s) you're hoping coaching will help you with?</div>
-      <div class="sub">Pick 2</div>
+      <div class="sub">Select all that apply</div>
       <label class="option"><input type="checkbox" name="q5" value="Leading and developing my team"><span class="option-text">Leading and developing my team</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Communicating with more influence"><span class="option-text">Communicating with more influence</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Navigating difficult relationships at work"><span class="option-text">Navigating difficult relationships at work</span></label>
@@ -131,8 +146,11 @@
       <label class="option"><input type="checkbox" name="q5" value="Improving my physical health and habits"><span class="option-text">Improving my physical health and habits</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Finding more purpose and fulfillment"><span class="option-text">Finding more purpose and fulfillment</span></label>
       <label class="option"><input type="checkbox" name="q5" value="Thinking through difficult or high-stakes decisions"><span class="option-text">Thinking through difficult or high-stakes decisions</span></label>
-      <div class="counter" id="q5-counter">0 of 2 selected</div>
-      <div class="error" id="q5-error">Please select exactly 2 options.</div>
+      <div class="other-field">
+        <div class="other-label">Something else:</div>
+        <input type="text" id="q5other" placeholder="Describe your challenge...">
+      </div>
+      <div class="error" id="q5-error">Please select at least one option or describe your challenge.</div>
     </div>
 
     <button class="btn" id="submit-btn">See My Results</button>
@@ -144,6 +162,10 @@
       <h2>Your RESPECT Style</h2>
       <p>A summary of your coaching preferences to share with your coach before your first session.</p>
     </div>
+
+    <!-- Submission status banner -->
+    <div class="submit-status" id="submit-status"></div>
+
     <div class="res-block">
       <div class="res-section-label">Your Coaching Roles</div>
       <div id="roles-list"></div>
@@ -163,22 +185,29 @@
   </div>
 
 </div>
-<script>
-var roleList = ['Rallier','Educator','Strategist','Provocateur','Explorer','Confidant','Transformer'];
 
-var roleDesc = {};
-roleDesc['Rallier'] = 'You want a coach who drives accountability, action plans, and momentum toward measurable results.';
-roleDesc['Educator'] = 'You want a coach who builds your skills, fills knowledge gaps, and shares relevant frameworks.';
-roleDesc['Strategist'] = 'You want a coach who is a true thought partner - helping you solve complex problems and cut through ambiguity.';
-roleDesc['Provocateur'] = 'You want a coach who challenges your assumptions, surfaces uncomfortable truths, and helps you make sharper decisions.';
-roleDesc['Explorer'] = 'You want a coach who opens up new possibilities, fosters creativity, and expands how you see the world.';
-roleDesc['Confidant'] = 'You want a coach who listens deeply and creates a safe space for honest, authentic conversation.';
-roleDesc['Transformer'] = 'You want a coach who sees your full potential and helps you grow from the inside out.';
+<div class="toast" id="toast"></div>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx73sTLKm_Adh02dh_g6LpOXBqE6w28JA2ssf0quVTJNMLBWtXQShhFCy1y8SjgURLfRg/exec';
+var MAX_RETRIES = 3;
+var currentPayload = null;
+
+var roleList = ['Rallier','Educator','Strategist','Provocateur','Explorer','Confidant','Transformer'];
+var roleDesc = {
+  Rallier:    'You want a coach who drives accountability, action plans, and momentum toward measurable results.',
+  Educator:   'You want a coach who builds your skills, fills knowledge gaps, and shares relevant frameworks.',
+  Strategist: 'You want a coach who is a true thought partner - helping you solve complex problems and cut through ambiguity.',
+  Provocateur:'You want a coach who challenges your assumptions, surfaces uncomfortable truths, and helps you make sharper decisions.',
+  Explorer:   'You want a coach who opens up new possibilities, fosters creativity, and expands how you see the world.',
+  Confidant:  'You want a coach who listens deeply and creates a safe space for honest, authentic conversation.',
+  Transformer:'You want a coach who sees your full potential and helps you grow from the inside out.'
+};
 
 function getChecked(name) {
   var all = document.querySelectorAll('input[name="' + name + '"]:checked');
   var vals = [];
-  for (var i = 0; i < all.length; i++) { vals.push(all[i].value); }
+  for (var i = 0; i < all.length; i++) vals.push(all[i].value);
   return vals;
 }
 
@@ -187,7 +216,7 @@ function setupLimit(name, max, counterId) {
   for (var i = 0; i < boxes.length; i++) {
     boxes[i].addEventListener('change', function() {
       var checked = document.querySelectorAll('input[name="' + name + '"]:checked');
-      if (checked.length > max) { this.checked = false; }
+      if (checked.length > max) this.checked = false;
       var n = document.querySelectorAll('input[name="' + name + '"]:checked').length;
       document.getElementById(counterId).textContent = n + ' of ' + max + ' selected';
     });
@@ -196,47 +225,105 @@ function setupLimit(name, max, counterId) {
 
 setupLimit('q1', 3, 'q1-counter');
 setupLimit('q4', 3, 'q4-counter');
-setupLimit('q5', 2, 'q5-counter');
 
+// ── Submission with retry ────────────────────────────────────────────
+function setStatus(type, msg, showRetry) {
+  var el = document.getElementById('submit-status');
+  el.className = 'submit-status ' + type;
+  el.innerHTML = msg + (showRetry ? ' <button class="retry-btn" id="retry-btn">Retry now</button>' : '');
+  if (showRetry) {
+    document.getElementById('retry-btn').addEventListener('click', function() {
+      sendPayload(currentPayload, 1);
+    });
+  }
+}
+
+function sendPayload(payload, attempt) {
+  setStatus('saving', '⏳ Saving your responses' + (attempt > 1 ? ' (attempt ' + attempt + ' of ' + MAX_RETRIES + ')' : '') + '…', false);
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', SCRIPT_URL, true);
+  xhr.setRequestHeader('Content-Type', 'text/plain');
+  xhr.timeout = 12000; // 12-second timeout
+
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      setStatus('saved', '✓ Your responses have been saved successfully.', false);
+    } else {
+      handleFailure(payload, attempt, 'Server returned status ' + xhr.status + '.');
+    }
+  };
+
+  xhr.onerror = function() {
+    handleFailure(payload, attempt, 'Network error.');
+  };
+
+  xhr.ontimeout = function() {
+    handleFailure(payload, attempt, 'Request timed out.');
+  };
+
+  xhr.send(JSON.stringify(payload));
+}
+
+function handleFailure(payload, attempt, reason) {
+  if (attempt < MAX_RETRIES) {
+    // Auto-retry after a short delay
+    setTimeout(function() { sendPayload(payload, attempt + 1); }, 2000);
+  } else {
+    setStatus('failed', '⚠️ We couldn\'t save your responses (' + reason + ').', true);
+  }
+}
+
+// ── Form submit ──────────────────────────────────────────────────────
 document.getElementById('submit-btn').addEventListener('click', function() {
   var valid = true;
+
+  // Validate name
+  var name = document.getElementById('fullName').value.trim();
+  var nameInput = document.getElementById('fullName');
+  if (!name) {
+    document.getElementById('name-error').style.display = 'block';
+    nameInput.classList.add('input-error');
+    valid = false;
+  } else {
+    document.getElementById('name-error').style.display = 'none';
+    nameInput.classList.remove('input-error');
+  }
 
   var q1 = getChecked('q1');
   var q2el = document.querySelector('input[name="q2"]:checked');
   var q3el = document.querySelector('input[name="q3"]:checked');
   var q4 = getChecked('q4');
   var q5 = getChecked('q5');
+  var q5other = document.getElementById('q5other').value.trim();
 
-  if (q1.length !== 3) {
-    document.getElementById('q1-error').style.display = 'block'; valid = false;
-  } else { document.getElementById('q1-error').style.display = 'none'; }
+  if (q1.length !== 3) { document.getElementById('q1-error').style.display = 'block'; valid = false; }
+  else { document.getElementById('q1-error').style.display = 'none'; }
 
-  if (!q2el) {
-    document.getElementById('q2-error').style.display = 'block'; valid = false;
-  } else { document.getElementById('q2-error').style.display = 'none'; }
+  if (!q2el) { document.getElementById('q2-error').style.display = 'block'; valid = false; }
+  else { document.getElementById('q2-error').style.display = 'none'; }
 
-  if (!q3el) {
-    document.getElementById('q3-error').style.display = 'block'; valid = false;
-  } else { document.getElementById('q3-error').style.display = 'none'; }
+  if (!q3el) { document.getElementById('q3-error').style.display = 'block'; valid = false; }
+  else { document.getElementById('q3-error').style.display = 'none'; }
 
-  if (q4.length !== 3) {
-    document.getElementById('q4-error').style.display = 'block'; valid = false;
-  } else { document.getElementById('q4-error').style.display = 'none'; }
+  if (q4.length !== 3) { document.getElementById('q4-error').style.display = 'block'; valid = false; }
+  else { document.getElementById('q4-error').style.display = 'none'; }
 
-  if (q5.length !== 2) {
-    document.getElementById('q5-error').style.display = 'block'; valid = false;
-  } else { document.getElementById('q5-error').style.display = 'none'; }
+  if (q5.length === 0 && q5other === '') { document.getElementById('q5-error').style.display = 'block'; valid = false; }
+  else { document.getElementById('q5-error').style.display = 'none'; }
 
-  if (!valid) { return; }
+  if (!valid) return;
 
+  // Tally roles
   var tally = {};
-  for (var i = 0; i < roleList.length; i++) { tally[roleList[i]] = 0; }
-  for (var i = 0; i < q1.length; i++) { tally[q1[i]]++; }
-  for (var i = 0; i < q4.length; i++) { tally[q4[i]]++; }
+  for (var i = 0; i < roleList.length; i++) tally[roleList[i]] = 0;
+  for (var i = 0; i < q1.length; i++) tally[q1[i]]++;
+  for (var i = 0; i < q4.length; i++) tally[q4[i]]++;
 
-  var dirScore = (parseInt(q2el.value) + parseInt(q3el.value)) / 2;
+  // Directiveness
+  var q2s = parseInt(q2el.value);
+  var q3s = parseInt(q3el.value);
+  var dirScore = (q2s + q3s) / 2;
   var dirLevel, dirDesc;
-
   if (dirScore <= 1.4) {
     dirLevel = 'High Directiveness';
     dirDesc = 'You prefer a coach who is candid and leads with perspective - sharing feedback, recommendations, and direct challenge.';
@@ -248,26 +335,23 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     dirDesc = 'You prefer a coach who draws out your own thinking - leading with questions and sharing perspective sparingly.';
   }
 
+  // Primary / secondary roles
   var primary = [], secondary = [];
   for (var i = 0; i < roleList.length; i++) {
     var r = roleList[i];
-    if (tally[r] === 2) { primary.push(r); }
-    else if (tally[r] === 1) { secondary.push(r); }
+    if (tally[r] === 2) primary.push(r);
+    else if (tally[r] === 1) secondary.push(r);
   }
-
   if (primary.length === 0) {
     primary = q1.slice();
     var secSet = [];
     for (var i = 0; i < q4.length; i++) {
-      var found = false;
-      for (var j = 0; j < q1.length; j++) {
-        if (q4[i] === q1[j]) { found = true; break; }
-      }
-      if (!found) { secSet.push(q4[i]); }
+      if (q1.indexOf(q4[i]) === -1) secSet.push(q4[i]);
     }
     secondary = secSet;
   }
 
+  // Render results
   var html = '';
   for (var i = 0; i < primary.length; i++) {
     var r = primary[i];
@@ -278,39 +362,35 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     html += '<div class="role-card"><div class="role-card-header"><span class="role-card-name">' + r + '</span><span class="badge badge-secondary">Secondary</span></div><div class="role-card-desc">' + roleDesc[r] + '</div></div>';
   }
   document.getElementById('roles-list').innerHTML = html;
-
-  var name = document.getElementById('fullName').value.trim();
   document.getElementById('res-name').textContent = name;
   document.getElementById('dir-level').textContent = dirLevel;
   document.getElementById('dir-desc').textContent = dirDesc;
 
+  var allFocus = q5.slice();
+  if (q5other !== '') allFocus.push(q5other);
   var tagHtml = '';
-  for (var i = 0; i < q5.length; i++) {
-    tagHtml += '<span class="tag">' + q5[i] + '</span>';
-  }
+  for (var i = 0; i < allFocus.length; i++) tagHtml += '<span class="tag">' + allFocus[i] + '</span>';
   document.getElementById('focus-tags').innerHTML = tagHtml;
 
-  var payload = {
+  // Build and store payload, then send
+  currentPayload = {
     fullName: name,
     q1: q1.join(', '),
     q2: q2el.value === '1' ? 'Very direct' : q2el.value === '2' ? 'Balanced' : 'Tactful',
     q3: q3el.value === '1' ? 'Lean toward sharing perspective' : q3el.value === '2' ? 'Balance perspective with questions' : 'Lean toward asking questions',
     q4: q4.join(', '),
-    q5: q5.join(', '),
+    q5: allFocus.join(', '),
     primaryRoles: primary.join(', '),
     secondaryRoles: secondary.join(', '),
     directivenessScore: dirScore.toString(),
     directivenessLevel: dirLevel
   };
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://script.google.com/macros/s/AKfycbx73sTLKm_Adh02dh_g6LpOXBqE6w28JA2ssf0quVTJNMLBWtXQShhFCy1y8SjgURLfRg/exec', true);
-  xhr.setRequestHeader('Content-Type', 'text/plain');
-  xhr.send(JSON.stringify(payload));
-
   document.getElementById('form-view').style.display = 'none';
   document.getElementById('results').style.display = 'block';
   window.scrollTo(0, 0);
+
+  sendPayload(currentPayload, 1);
 });
 
 document.getElementById('restart-btn').addEventListener('click', function() {
